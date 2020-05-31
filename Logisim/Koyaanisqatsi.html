@@ -1,0 +1,89 @@
+<html><head><title>Koyaanisqatsi-CPU</title>
+
+<script>
+Number.prototype.Hex = function(n) {
+	return	(n < 0 ? "0x" : "") + ((((this >> 16) & 0x0000FFFF) | 0x00010000).toString(16) + ((this & 0x0000FFFF) | 0x00010000).toString(16).substr(1)).substr(-Math.abs(n)).toUpperCase();
+}
+</script>
+
+<script>
+function Tell(text) {
+	var	dump = text.match(/[0-9A-F]{2}/gi);
+	var	alu = ["", "", "", "", "", "", "", "", "", "", "ADD ", "SUB ", "AND ", "OR  ", "XOR ", "?..."];
+	var	apr = ["C", "D", "A", "B"];
+	var	addr = 0;
+	var	byte;
+	var	list = [];
+	var	cmd, ptr, ic, lo;
+	var	reg = [0, 0, 0, 0];
+	var	r_t = [0, 0];
+	var	op = "?,?";
+	if(dump) {
+		dump.forEach(
+			function(hex) {
+				ptr = addr.Hex(4);
+				byte = hex.toUpperCase();
+				ic = parseInt(hex, 16);
+				lo = ic & 0x0F;
+				hi = (ic >> 4) & 3;
+				cmd = "";
+				if(0x00 == ic)
+					cmd = "HLT";
+				else
+				if(0x9F >= ic && lo <= 0x09)
+					cmd = "+" + ic.toString(16);
+				else
+				if(0x9F >= ic && lo > 0x09)
+					cmd = alu[lo] + apr[r_t[0]] + reg[r_t[0]] + "," + apr[r_t[1]] + (ic >> 4);
+				else
+				if(0xDF >= ic && lo <= 0x09)
+					reg[hi] = lo,
+					op = apr[r_t[0]] + reg[r_t[0]] + "," + apr[r_t[1]] + reg[r_t[1]],
+					cmd = "USE " + hex;
+				else
+				if(0xDD >= ic && lo <= 0x0C)
+					r_t[0] = hi,
+					r_t[1] = lo & 3,
+					op = apr[r_t[0]] + reg[r_t[0]] + "," + apr[r_t[1]] + reg[r_t[1]],
+					cmd = "USE " + op;
+				else
+				if(0xAE == ic || ic == 0xBE || 0xCE == ic || ic == 0xDE)
+					cmd = hex + "  " + apr[hi] + reg[hi] + ",[B" + reg[2] + ":C" + reg[3] + "]";
+				else
+				if(0xAF == ic || ic == 0xBF || 0xCF == ic || ic == 0xDF)
+					cmd = hex + "  [B" + reg[2] + ":C" + reg[3] + "]," + apr[hi] + reg[hi];
+				else
+				if(0xF0 == ic)
+					cmd = "FIN/RET/JMP B" + reg[2] + ":C" + reg[3];
+				else
+				if(0xEF >= ic && ic >= 0xE8)
+					cmd = hex;
+				else
+					cmd = "JMP 0x" + hex + "00";
+				list.push(`${ptr} ${hex} | ${cmd}`);
+				addr ++;
+			}
+		);
+	}
+	document.getElementById("Dump").textContent = list.join("\r\n");
+}
+</script>
+<body>
+<textarea rows=16 cols=64 onkeyup='Tell(this.value)'>
+F1
+BB B8 8E
+85 85 85
+AA A8 8E 08
+D0
+CC C9 9E 0E
+BB B9 9E 0E
+B0 0E 8E
+AA A1 BE BF
+CC C0 0E 9E
+BB B0 0E 9E
+AA 8B
+DF EB 00
+F0
+</textarea>
+<pre id=Dump></pre>
+</body>
