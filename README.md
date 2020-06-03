@@ -1,7 +1,7 @@
 # Koyaanisqatsi
 The Esoteric CPU
 
-In contrast to the well-known «[Intel](https://en.wikipedia.org/wiki/Intel)» processors, whose brand name is quite easy to remember and pronounce, [Koyaanisqatsi](https://en.wikipedia.org/wiki/Koyaanisqatsi) was conceived as a processor whose name is more difficult to pronounce than to understand its architecture and learn how to program it at the most elementary level of machine code by dump editors to check Is it really worth bending under the amateur radio-technical specifications and it is impossible to form a beautiful command system, understandable at the level of intuition? It doesn’t mean the "O'Key, calculate me the factorial average" style code, but I planned a machine code with a minimum level of getting into the basics of the art of programming it, which does not require hard cramming and memorizing all the teams.
+In contrast to the well-known «[Intel](https://en.wikipedia.org/wiki/Intel)» processors, whose brand name is quite easy to remember and pronounce, [Koyaanisqatsi](https://en.wikipedia.org/wiki/Koyaanisqatsi) was conceived as a processor whose name is more difficult to pronounce than to understand its architecture and learn how to program it at the most elementary level of machine code by dump editors to check Is it really worth bending under the amateur radio-technical specifications and it is impossible to form a beautiful command system, understandable at the level of intuition? It doesn’t mean the code in style like "O'Key, calculate me the factorial average", but I planned a machine code with a minimum level of getting into the basics of the art of programming it, which does not require hard cramming and memorizing all the commands.
 
 В противоположность известных всем процессоров «[Intel](https://ru.wikipedia.org/wiki/Intel)», марку которых довольно легко запоминать и выговоривать, «[Койяанискаци](https://ru.wikipedia.org/wiki/%D0%9A%D0%BE%D0%B9%D1%8F%D0%B0%D0%BD%D0%B8%D1%81%D0%BA%D0%B0%D1%86%D0%B8)» задумывался как процессор, имя которого сложнее произнести, чем разобраться в его архитектуре и научиться его программировать на самом элементарном уровне машинного кода редакторами дампа, чтобы проверить, действительно ли стоит прогибаться под радиолюбительские ТУ и невозможно сфомироваться красивую систему команд, понятную на уровне интуиции?
 Не имеется ввиду код стиля «O'Kей, процик, вычисли мне среднее факториальное», а планировался машинный код с минимальным уровнем вхождения в основы искусства его программирования, не требующего жёсткой зубрёжки и заучивания всех команд.
@@ -14,3 +14,40 @@ In contrast to the well-known «[Intel](https://en.wikipedia.org/wiki/Intel)» p
 максимально осмысленного кодирования всех инструкций в шестнадцатеричном виде.
 
 (В противоположность Befunge, BrainF*ck, WhiteSpace и прочему озорству!)
+<hr />
+<h4>Архитектура процессора</h4>
+Весь процессор основан на регистровом файле из четырёх функциональных групп по десять ячеек в каждой. Хотя операции АЛУ возможны над любыми ячейками, правила корректного оперирования с ними соблюдать необходимо более-менее строго. Здесь стоит просто запомнить логику и назначение этих функциональных групп:
+<table>
+<tr><th>Группа</th><th>Назначение</th><th>Примечание</th></tr>
+<tr><td>A₀…₉</td><td>Аккумулятор</td><td>A₀ хранит флажки статуса АЛУ</td></tr>
+<tr><td>B₀…₉</td><td>Base / База</td><td>B₀ хранит Базу возврата из подпрограммы</td></tr>
+<tr><td>C₀…₉</td><td>Counter / Счётчик</td><td>C₀ хранит Смещение возврата из подпрограммы</td></tr>
+<tr><td>D₀…₉</td><td>Device / Устройство</td><td>Можно организовать кеш</td></tr>
+</table>
+Так как процессор достаточно прост и не имеет встроенных аппаратных механизмов организации стековых операций, регистры B₀:C₀ сохраняют адрес, на котором была размещена операция обращения к подпрограмме. Программист при необходимости сам обязан позаботиться о всех операциях работы со стеком и описать их алгоритмом. Для облегчения разработки алгоритма, следует использовать небольшую библиотеку кратких подфункций, выполняющих необходимые операции ветвления и вызова всяких пользовательских подпрограмм, реализующие механизмы стека программным уровнем.
+При доступе к внешней памяти нужная ячейка адресуется парой активных регистров Bi и Cj, где Bi указывает на Базу Блока по 256 ячеек и Cj указывает в блоке на конкретную ячейку. Медленная память может удлинить цикл доступа сигналом Wait.
+Регистры D₀…₉ не следует использовать в активных вычислительных процессах, так как они управляют периферией непосредственного доступа с мгновенным откликом и пригодны для организации процессорного кеша и контекстного регистрового файла.
+
+<h4>Система команд Койяанискаци</h4>
+Практически все команды кодируются <a href="https://ru.wikipedia.org/wiki/WYSIWYG">WYSIWYG</a>-стилем <a href="https://ru.wikipedia.org/wiki/%D0%90%D0%BA%D1%8B%D0%BD">акына</a>:«Что вижу, то значит». Шестнадцатеричная кодировка отчасти является аббревиатурой самой команды и всё задумывалось так, чтобы большинство команд просто совершали понятные действия.
+<ul>
+<li>00: HLT (останов программы) - крайне логичный и гармоничный код!</li>
+<li>01: Приращение единицы к активному регистру-приёмнику</li>
+<li>02…09: Префикс повтора операции от 2 до 9 раз или пропуск группы операций по условию</li>
+<li>10…99: Используется <a href="https://ru.wikipedia.org/wiki/%D0%94%D0%B2%D0%BE%D0%B8%D1%87%D0%BD%D0%BE-%D0%B4%D0%B5%D1%81%D1%8F%D1%82%D0%B8%D1%87%D0%BD%D1%8B%D0%B9_%D0%BA%D0%BE%D0%B4">BCD</a>-код приращения к активному регистру-приёмнику - код 56 означает именно 56<a href="https://ru.wikipedia.org/wiki/%D0%94%D0%B5%D1%81%D1%8F%D1%82%D0%B8%D1%87%D0%BD%D0%B0%D1%8F_%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D0%B0_%D1%81%D1%87%D0%B8%D1%81%D0%BB%D0%B5%D0%BD%D0%B8%D1%8F">₁₀</a>, а не 0x56<a href="https://ru.wikipedia.org/wiki/%D0%A8%D0%B5%D1%81%D1%82%D0%BD%D0%B0%D0%B4%D1%86%D0%B0%D1%82%D0%B5%D1%80%D0%B8%D1%87%D0%BD%D0%B0%D1%8F_%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D0%B0_%D1%81%D1%87%D0%B8%D1%81%D0%BB%D0%B5%D0%BD%D0%B8%D1%8F">₁₆</a></li>
+<li>A0…A9, B0…B9, C0…C9: Безвременные префиксы выбора активного регистра указанной группы - A₀…A₉, B₀…B₉, C₀…C₉ соответственно</li>
+<li>D0…D9: Выбор активного устройства группы Devices - D₀…D₉</li>
+<li>AA…AD, BA…BD, CA…CD, DA…DD: Безвременные префиксы выбора сочетания операндов для АЛУ-операций - A,A…D,D соответственно</li>
+<li>E0…E7: Обращение к расширению (Extension) через подпрограмму - CALL 0xE000…0xE700</li>
+<li>F1…F9: Обращение к функции (Function) с указанным индексом - CALL 0xF100…0xF900</li>
+<li>E8…EF: Условный префикс к исполнению кода следующей операции - Enable if SF/PF/CF/ZF</li>
+<li>F0: Завершение текущей функции (Function Over - как Game Over)</li>
+<li>AE/BE/CE/DE: Извлечение (Extract) данных из памяти в указанный регистр</li>
+<li>AF/BF/CF/DF: Запись/фиксация (Fix) данных указанного регистра в память</li>
+<li>FA…FF: Вызов прочих функций - CALL 0xFA00…0xFF00</li>
+<li>0A/1A/2A…9A: АЛУ-операция "Сумма" (Add) над группой операндов - индекс правого операнда указывается явно 0…9</li>
+<li>0B/1B/2B…9B: АЛУ-операция "Вычитание" (suB) над группой операндов - индекс правого операнда указывается явно 0…9</li>
+<li>0C/1C/2C…9C: АЛУ-операция "Конъюнкция" (Conjunct/and) над группой операндов - индекс правого операнда указывается явно 0…9</li>
+<li>0D/1D/2D…9D: АЛУ-операция "Дизъюнкция" (Disjunct/or) над группой операндов - индекс правого операнда указывается явно 0…9</li>
+<li>0E/1E/2E…9E: АЛУ-операция "Исключающее ИЛИ" (Exclusive or/Eor/xor) над группой операндов - индекс правого операнда указывается явно 0…9</li>
+</ul>
