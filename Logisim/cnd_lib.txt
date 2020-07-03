@@ -1,4 +1,4 @@
-﻿Файл cnd_lib.ram:
+﻿Файл JMP_CALL.ram:
 Маленькая библиотека подпрограмм, значительно
 упрощающая построение циклов, условных веток,
 пользовательских процедур. Стек ведётся парой
@@ -8,7 +8,7 @@
 *********************************************
 F8 DE BC|JMP  0xBCDE
 F9 DE BC|CALL 0xBCDE
-09 F9   |RET
+90 F9   |RET
 FA DE BC|JS   0xBCDE
 FB DE BC|JNS  0xBCDE
 FC DE BC|JC   0xBCDE
@@ -25,7 +25,7 @@ F803 A9 B0 AE|EXT A9,B0:C0
 F806       01|INC C0
 F807       BE|EXT B0,B0:C0
 F808 0E CA 9D|MOV C0,A9
-F80B       F0|FO          ;28 ticks
+F80B       E0|END         ;28 ticks
 
 F900:CALL LO:HI- Безусловный вызов процедуры
 =============================================
@@ -39,15 +39,15 @@ F90D    AC 0D|OR  A7,C0
 F90F A6 AA 6E|EOR A6,A6
 F912    AB 0D|OR  A6,B0
 F914 CC C9   |USE C9,C9
-F916 03 85   |DEC C9
+F916 30 85   |DEC C9
 F918    B9 AF|EXT B9:C9,A6
-F91A 03 85   |DEC C9
+F91A 30 85   |DEC C9
 F91C    A7 AF|EXT B9:C9,A7
 F91E C0 0E   |EOR C0,C0
 F920    CA 9D|OR  C0,A9
 F922 B0 BB 0E|EOR B0,B0
 F925    BA 8D|OR  B0,A8
-F927       F0|FO          ;90 ticks
+F927       E0|END          ;90 ticks
 
 F990:RET       - Возврат из процедуры
 =============================================
@@ -60,71 +60,70 @@ F99A    C9 AE|EXT A9,B9:C9
 F99C CC 01   |INC C9
 F99E BB B0 0E|EOR B0,B0
 F9A1    BA 9D|OR  B0,A9
-F9A3       F0|FO          ;44 ticks
+F9A3       E0|END         ;44 ticks
 
 FA00:JS  LO:HI - Переход на адрес если SF
 =============================================
-FA00 03 EB   |EB
-FA02    04 F0|FO  4       ;11 ticks
+FA00 30 EB   |EB
+FA02    40 E0|END 4       ;11 ticks
 FA04 CC C0 01|INC C0
 F807 A9 B0 AE|EXT A9,B0:C0
 F80A       01|INC C0
 F80B       BE|EXT B0,B0:C0
 F80C 0E CA 9D|MOV C0,A9
-F80F       F0|FO          ;34 ticks
+F80F       E0|END         ;34 ticks
 
 FB00:JNS LO:HI - Переход на адрес если !SF
 =============================================
-FB00 03 EA   |EA
-FB02    04 F0|FO  4       ;11 ticks
+FB00 30 EA   |EA
+FB02    40 E0|END 4       ;11 ticks
 FB04 CC C0 01|INC C0
 FB07 A9 B0 AE|EXT A9,B0:C0
 FB0A       01|INC C0
 FB0B       BE|EXT B0,B0:C0
 FB0C 0E CA 9D|MOV C0,A9
-FB0F       F0|FO          ;34 ticks
+FB0F       E0|END         ;34 ticks
 
 FC00:JC  LO:HI - Переход на адрес если CF
 =============================================
-FC00 03 ED   |ED
-FC02    04 F0|FO  4       ;11 ticks
+FC00 30 ED   |ED
+FC02    40 E0|END 4       ;11 ticks
 FC04 CC C0 01|INC C0
 FC07 A9 B0 AE|EXT A9,B0:C0
 FC0A       01|INC C0
 FC0B       BE|EXT B0,B0:C0
 FC0C 0E CA 9D|MOV C0,A9
-FC0F       F0|FO          ;34 ticks
+FC0F       E0|END         ;34 ticks
 
 FD00:JNC LO:HI - Переход на адрес если !CF
 =============================================
-FD00 03 EC   |EC
-FD02    04 F0|FO  4       ;11 ticks
+FD00 30 EC   |EC
+FD02    40 E0|END 4       ;11 ticks
 FD04 CC C0 01|INC C0
 FD07 A9 B0 AE|EXT A9,B0:C0
 FD0A       01|INC C0
 FD0B       BE|EXT B0,B0:C0
 FD0C 0E CA 9D|MOV C0,A9
-FD0F       F0|FO          ;34 ticks
+FD0F       E0|END         ;34 ticks
 
 FE00:JZ  LO:HI - Переход на адрес если ZF
 =============================================
-FE00 03 EF   |EF
-FE02    04 F0|FO  4       ;11 ticks
+FE00 30 EF   |EF
+FE02    40 E0|END 4       ;11 ticks
 FE04 CC C0 01|INC C0
 FE07 A9 B0 AE|EXT A9,B0:C0
 FE0A       01|INC C0
 FE0B       BE|EXT B0,B0:C0
 FE0C 0E CA 9D|MOV C0,A9
-FE0F       F0|FO          ;34 ticks
+FE0F       E0|END         ;34 ticks
 
 FF00:JNZ LO:HI - Переход на адрес если !ZF
 =============================================
-FF00 03 EE   |EE
-FF02    04 F0|FO  4       ;11 ticks
+FF00 30 EE   |EE
+FF02    40 E0|END 4       ;11 ticks
 FF04 CC C0 01|INC C0
 FF07 A9 B0 AE|EXT A9,B0:C0
 FF0A       01|INC C0
 FF0B       BE|EXT B0,B0:C0
 FF0C 0E CA 9D|MOV C0,A9
-FF0F       F0|FO          ;34 ticks
-
+FF0F       E0|END         ;34 ticks
