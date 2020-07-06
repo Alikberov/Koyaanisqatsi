@@ -1,0 +1,194 @@
+<html><head><title>Koyaanisqatsi-CPU</title>
+
+<script>
+Number.prototype.Hex = function(n) {
+	return	(n < 0 ? "0x" : "") + ((((this >> 16) & 0x0000FFFF) | 0x00010000).toString(16) + ((this & 0x0000FFFF) | 0x00010000).toString(16).substr(1)).substr(-Math.abs(n)).toUpperCase();
+}
+</script>
+
+<script>
+function Tell(text) {
+	var	dump = text.match(/[0-9A-F]{2}/gi);
+	var	alu = ["", "", "", "", "", "", "", "", "", "", "ADD ", "SUB ", "AND ", "OR  ", "XOR ", "MOV "];
+	var	apr = ["C", "D", "A", "B"];
+	var	addr = 0;
+	var	byte;
+	var	bytes = "";
+	var	codes = "";
+	var	list = [];
+	var	cmd, ptr, rep = 0, ic, lo;
+	var	ext = "_", mul = "_";
+	var	cnd = "   ", cnt = 0;
+	var	reg = [0, 0, 0, 0];
+	var	r_t = [0, 0];
+	var	op = "?,?";
+	if(dump) {
+		dump.forEach(
+			function(hex) {
+				ptr = addr.Hex(4);
+				byte = hex.toUpperCase();
+				bytes += " " + byte;
+				ic = parseInt(hex, 16);
+				lo = ic & 0x0F;
+				hi = (ic >> 4) & 3;
+				cmd = "";
+				//
+				if(0x00 == ic)
+					cmd = "HLT" + cnd + (rep > 0 ? "0x00" + rep + "0" : ""),
+					codes = bytes,
+					bytes = "",
+					rep = 0;
+				else
+				if(0x9F >= ic && lo == 0x00)
+					switch(rep = ic >> 4) {
+					case 1: case 2: case 3:
+						ext = "_<<" + rep + " ; shift bits";
+						mul = rep + "*(_)";
+						break;
+					case 4: case 5: case 6: case 7:
+						ext = "_>>" + (8 - rep) + " ; shift bits";
+						mul = rep + "*(_)";
+						break;
+					case 8:
+						ext = "~_   ; inverse bits";
+						mul = rep + "*(_)";
+						break;
+					case 9:
+						ext = "<_>  ; reverse bits order";
+						mul = rep + "*(_)";
+						break;
+					}
+				else
+				if(0x9F >= ic && lo >= 0x0C)
+					cmd = alu[lo] + cnd + apr[r_t[0]] + reg[r_t[0]] + "," + ext.replace("_", apr[r_t[1]] + (ic >> 4)),
+					codes = bytes,
+					bytes = "",
+					rep = 0;
+				else
+				if(0x9F >= ic && lo >= 0x0A)
+					cmd = alu[lo] + cnd + apr[r_t[0]] + reg[r_t[0]] + "," + mul.replace("_", apr[r_t[1]] + (ic >> 4)),
+					codes = bytes,
+					bytes = "",
+					rep = 0;
+				else
+				if(0xDF >= ic && lo <= 0x09)
+					reg[hi] = lo,
+					op = apr[r_t[0]] + reg[r_t[0]] + "," + apr[r_t[1]] + reg[r_t[1]],
+					rep = 0;
+				else
+				if(0xDD >= ic && lo <= 0x0C)
+					r_t[0] = hi,
+					r_t[1] = lo & 3,
+					op = apr[r_t[0]] + reg[r_t[0]] + "," + apr[r_t[1]] + reg[r_t[1]],
+					rep = 0;
+				else
+				if(0xAE == ic || ic == 0xBE || 0xCE == ic || ic == 0xDE)
+					cmd = hex + cnd + "  " + apr[hi] + reg[hi] + ",[B" + reg[2] + ":C" + reg[3] + "]",
+					codes = bytes,
+					bytes = "",
+					rep = 0;
+				else
+				if(0xAF == ic || ic == 0xBF || 0xCF == ic || ic == 0xDF)
+					cmd = hex + cnd + "  [B" + reg[2] + ":C" + reg[3] + "]," + apr[hi] + reg[hi],
+					codes = bytes,
+					bytes = "",
+					rep = 0;
+				else
+				if(0xE0 <= ic && ic <= 0xE7)
+					cmd = "END" + cnd + "B" + lo + ":C" + lo + (rep > 0 ? "+" + rep : ""),
+					codes = bytes,
+					bytes = "",
+					rep = 0;
+				else
+				if(0xEF >= ic && ic >= 0xE8)
+					cmd = hex + "'",
+					cnd = "'" + hex.substr(1) + " ",
+					codes = bytes,
+					bytes = "",
+					cnt = rep,
+					rep = 0;
+				else
+					cmd = "JMP" + cnd + "0x" + hex + rep + "0",
+					codes = bytes,
+					bytes = "",
+					rep = 0;
+				if(rep == 0)
+					ext = "_",
+					mul = "_";
+				if(codes != "")
+					list.push(`${(addr - codes.split(" ").length + 2).Hex(4)}${"          ".substr(codes.length) + codes} | ${cmd}`),
+					codes = "";
+				if(cnt > 0)
+					cnt --;
+				if(cnt == 0)
+					cnd = "   ";
+				addr ++;
+			}
+		);
+	}
+	document.getElementById("Dump").textContent = list.join("\r\n");
+}
+</script>
+<body>
+<textarea rows=16 cols=64 onkeyup='Tell(this.value)'>
+AC A9 0F
+AB    0D
+      EF
+      00
+   90 0A
+   90 0B
+   90 0C
+   90 0D
+   90 0E
+   90 0F
+   80 0A
+   80 0B
+   80 0C
+   80 0D
+   80 0E
+   80 0F
+   70 0A
+   70 0B
+   70 0C
+   70 0D
+   70 0E
+   70 0F
+   60 0A
+   60 0B
+   60 0C
+   60 0D
+   60 0E
+   60 0F
+   50 0A
+   50 0B
+   50 0C
+   50 0D
+   50 0E
+   50 0F
+   40 0A
+   40 0B
+   40 0C
+   40 0D
+   40 0E
+   40 0F
+   30 0A
+   30 0B
+   30 0C
+   30 0D
+   30 0E
+   30 0F
+   20 0A
+   20 0B
+   20 0C
+   20 0D
+   20 0E
+   20 0F
+   10 0A
+   10 0B
+   10 0C
+   10 0D
+   10 0E
+   10 0F
+</textarea>
+<pre id=Dump></pre>
+</body>
